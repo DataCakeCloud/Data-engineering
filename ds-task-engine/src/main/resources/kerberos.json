@@ -1,0 +1,26 @@
+{
+  "19":{
+    "principal":"ods@HADOOP.COM",
+    "keytab":"/data-kfs/home/ods/.keytab/ods.keytab"
+  },
+  "10":{
+    "principal":"dw_cn_2b@HADOOP.COM",
+    "keytab":"/data-kfs/home/dw_cn_2b/.keytab/dw_cn_2b.keytab"
+  },
+  "13":{
+    "principal":"dw_cn_com@HADOOP.COM",
+    "keytab":"/data-kfs/home/dw_cn_com/.keytab/dw_cn_com.keytab"
+  },
+  "12":{
+    "principal":"dw_cn_2c@HADOOP.COM",
+    "keytab":"/data-kfs/home/dw_cn_2c/.keytab/dw_cn_2c.keytab"
+  },
+  "14":{
+    "principal":"dw_cn_base@HADOOP.COM",
+    "keytab":"/data-kfs/home/dw_cn_base/.keytab/dw_cn_base.keytab"
+  },
+  "15":{
+    "principal":"dw_cn_br@HADOOP.COM",
+    "keytab":"/data-kfs/home/dw_cn_br/.keytab/dw_cn_br.keytab"
+  }
+}

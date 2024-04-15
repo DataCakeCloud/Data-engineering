@@ -1,0 +1,647 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ushareit.dstask.out.CostMapper">
+    <select id="">
+        select * from user_group
+        <where>
+         delete_status=0
+            <if test="paramMap.name!=null and paramMap.name!=''">
+                and name=#{paramMap.name}
+            </if>
+        </where>
+
+    </select>
+    <select id="selectCost" resultType="com.ushareit.dstask.common.vo.cost.CostResponseVo">
+        SELECT
+        <if test="vo.groupby==null||vo.groupby==0">
+            a.dt,
+        </if>
+        <if test="vo.costType=='DP' ">
+            d.department departmentName,count(distinct(a.job_name)) as jobNum,
+        </if>
+        <if test="vo.costType=='OWNER' ">
+            a.owner owner,count(distinct(a.job_name)) as jobNum,
+        </if>
+        <if test="vo.costType=='JOB' ">
+            a.job_name jobName,count(distinct(a.job_name)) as jobNum,
+        </if>
+        <if test="vo.costType=='PRODUCT' ">
+            a.product productName,count(distinct(a.job_name)) as jobNum,
+        </if>
+        SUM((a.node_hours*a.unit_price+a.assign_cluster_cost)/0.12672) as jobNameQuantity
+        FROM tableau.bill_cluster_cost a FORCE INDEX(doj)
+        <if test="vo.costType=='DP' or vo.departments!=null">
+            LEFT JOIN  tableau.bill_owner_department d on  a.`owner` = d.`owner`
+        </if>
+        <where>
+            <if test="vo.startDate!=null and vo.startDate!=''">
+                and a.dt>=#{vo.startDate}
+            </if>
+            <if test="vo.endDate!=null and vo.endDate!=''">
+                and #{vo.endDate}>=a.dt
+            </if>
+            <if test="vo.dates!=null">
+                and a.dt IN
+                <foreach collection="vo.dates" item="datess" index="index"
+                         separator="," open="(" close=")">
+                    #{datess}
+                </foreach>
+            </if>
+            <if test="vo.jobNames!=null">
+                and a.job_name IN
+                <foreach collection="vo.jobNames" item="job" index="index"
+                         separator="," open="(" close=")">
+                    #{job}
+                </foreach>
+            </if>
+            <if test="vo.owners!=null">
+                and a.owner IN
+                <foreach collection="vo.owners" item="owner" index="index"
+                         separator="," open="(" close=")">
+                    #{owner}
+                </foreach>
+            </if>
+            <if test="vo.departments!=null">
+                and d.department IN
+                <foreach collection="vo.departments" item="department" index="index"
+                         separator="," open="(" close=")">
+                    #{department}
+                </foreach>
+            </if>
+            <if test="vo.regions!=null">
+                and a.region IN
+                <foreach collection="vo.regions" item="region" index="index"
+                         separator="," open="(" close=")">
+                    #{region}
+                </foreach>
+            </if>
+            <if test="vo.products!=null">
+                and a.product IN
+                <foreach collection="vo.products" item="product" index="index"
+                         separator="," open="(" close=")">
+                    #{product}
+                </foreach>
+            </if>
+
+        </where>
+        GROUP BY
+        <if test="vo.groupby==null||vo.groupby==0">
+            a.dt,
+        </if>
+        <if test="vo.costType=='DP' ">
+            d.department
+        </if>
+        <if test="vo.costType=='OWNER' ">
+            a.owner
+        </if>
+        <if test="vo.costType=='JOB' ">
+            a.job_name
+        </if>
+        <if test="vo.costType=='PRODUCT' ">
+            a.product
+        </if>
+    </select>
+
+    <select id="selectCostDp" resultType="com.ushareit.dstask.common.vo.cost.CostResponseVo">
+        select j.dt,d.department departmentName,sum(j.jobNameQuantity)as jobNameQuantity,sum(j.jobNum) as jobNum
+        from
+        (SELECT
+        count(distinct(a.job_name)) as jobNum,a.dt ,SUM((a.node_hours*a.unit_price+a.assign_cluster_cost)/0.12672) as
+        jobNameQuantity,a.owner
+        FROM tableau.bill_cluster_cost a FORCE INDEX(doj)
+        <where>
+            <if test="vo.startDate!=null and vo.startDate!=''">
+                and a.dt>=#{vo.startDate}
+            </if>
+            <if test="vo.endDate!=null and vo.endDate!=''">
+                and #{vo.endDate}>=a.dt
+            </if>
+            <if test="vo.dates!=null">
+                and a.dt IN
+                <foreach collection="vo.dates" item="datess" index="index"
+                         separator="," open="(" close=")">
+                    #{datess}
+                </foreach>
+            </if>
+            <if test="vo.jobNames!=null">
+                and a.job_name IN
+                <foreach collection="vo.jobNames" item="job" index="index"
+                         separator="," open="(" close=")">
+                    #{job}
+                </foreach>
+            </if>
+            <if test="vo.owners!=null">
+                and a.owner IN
+                <foreach collection="vo.owners" item="owner" index="index"
+                         separator="," open="(" close=")">
+                    #{owner}
+                </foreach>
+            </if>
+            <if test="vo.products!=null">
+                and a.product IN
+                <foreach collection="vo.products" item="product" index="index"
+                         separator="," open="(" close=")">
+                    #{product}
+                </foreach>
+            </if>
+            <if test="vo.regions!=null">
+                and a.region IN
+                <foreach collection="vo.regions" item="region" index="index"
+                         separator="," open="(" close=")">
+                    #{region}
+                </foreach>
+            </if>
+        </where>
+        GROUP BY
+        a.dt,a.owner
+        )j
+        LEFT JOIN  bill_owner_department d on  j.`owner` = d.`owner`
+        <where>
+            <if test="vo.departments!=null">
+                and d.department IN
+                <foreach collection="vo.departments" item="department" index="index"
+                         separator="," open="(" close=")">
+                    #{department}
+                </foreach>
+            </if>
+        </where>
+
+        group by j.dt,d.department
+    </select>
+
+
+    <select id="selectCumulativeCost" resultType="com.ushareit.dstask.common.vo.cost.CostResponseVo">
+        SELECT
+        <if test="vo.costType=='DP' ">
+            d.department departmentName,
+        </if>
+        <if test="vo.costType=='OWNER' ">
+            a.owner owner,
+        </if>
+        <if test="vo.costType=='JOB' ">
+            a.job_name jobName,
+        </if>
+        <if test="vo.costType=='PRODUCT' ">
+            a.product productName,
+        </if>
+        SUM((a.node_hours*a.unit_price+a.assign_cluster_cost)) as cumulativeCost,#{vo.startDate} as dt
+        FROM tableau.bill_cluster_cost a FORCE INDEX(doj)
+        <if test="vo.costType=='DP' or vo.departments!=null">
+            LEFT JOIN  tableau.bill_owner_department d on  a.`owner` = d.`owner`
+        </if>
+        <where>
+            #{vo.startDate} >= a.dt
+            <if test="vo.jobNames!=null">
+                and a.job_name IN
+                <foreach collection="vo.jobNames" item="job" index="index"
+                         separator="," open="(" close=")">
+                    #{job}
+                </foreach>
+            </if>
+            <if test="vo.owners!=null">
+                and a.owner IN
+                <foreach collection="vo.owners" item="owner" index="index"
+                         separator="," open="(" close=")">
+                    #{owner}
+                </foreach>
+            </if>
+            <if test="vo.departments!=null">
+
+                and d.department IN
+                <foreach collection="vo.departments" item="department" index="index"
+                         separator="," open="(" close=")">
+                    #{department}
+                </foreach>
+            </if>
+            <if test="vo.products!=null">
+                and a.product IN
+                <foreach collection="vo.products" item="product" index="index"
+                         separator="," open="(" close=")">
+                    #{product}
+                </foreach>
+            </if>
+            <if test="vo.regions!=null">
+                and a.region IN
+                <foreach collection="vo.regions" item="region" index="index"
+                         separator="," open="(" close=")">
+                    #{region}
+                </foreach>
+            </if>
+        </where>
+        GROUP BY
+        <if test="vo.costType=='DP' ">
+            d.department
+        </if>
+        <if test="vo.costType=='OWNER' ">
+            a.owner
+        </if>
+        <if test="vo.costType=='JOB' ">
+            a.job_name
+        </if>
+        <if test="vo.costType=='PRODUCT' ">
+            a.product
+        </if>
+    </select>
+
+
+    <select id="selectCumulativeCostDp" resultType="com.ushareit.dstask.common.vo.cost.CostResponseVo">
+        select  d.department departmentName,sum(j.cumulativeCost) as cumulativeCost,#{vo.startDate} as dt
+        from (SELECT
+        a.owner owner,
+        SUM((a.node_hours*a.unit_price+a.assign_cluster_cost)) as cumulativeCost
+        FROM tableau.bill_cluster_cost a FORCE INDEX(doj)
+        <where>
+            #{vo.startDate} >= a.dt
+            <if test="vo.jobNames!=null">
+                and a.job_name IN
+                <foreach collection="vo.jobNames" item="job" index="index"
+                         separator="," open="(" close=")">
+                    #{job}
+                </foreach>
+            </if>
+            <if test="vo.owners!=null">
+                and a.owner IN
+                <foreach collection="vo.owners" item="owner" index="index"
+                         separator="," open="(" close=")">
+                    #{owner}
+                </foreach>
+            </if>
+
+            <if test="vo.products!=null">
+                and a.product IN
+                <foreach collection="vo.products" item="product" index="index"
+                         separator="," open="(" close=")">
+                    #{product}
+                </foreach>
+            </if>
+            <if test="vo.regions!=null">
+                and a.region IN
+                <foreach collection="vo.regions" item="region" index="index"
+                         separator="," open="(" close=")">
+                    #{region}
+                </foreach>
+            </if>
+        </where>
+        group by a.owner
+        ) j LEFT JOIN tableau.bill_owner_department d on j.`owner` = d.`owner`
+
+        <where>
+            <if test="vo.departments!=null">
+
+                and d.department IN
+                <foreach collection="vo.departments" item="department" index="index"
+                         separator="," open="(" close=")">
+                    #{department}
+                </foreach>
+            </if>
+        </where>
+        group by d.department
+
+
+    </select>
+
+
+    <select id="selectCostPu" resultType="com.ushareit.dstask.common.vo.cost.CostResponseVo">
+        select
+        sum(y.jobNum) as jobNum ,y.dt ,SUM(y.jobNameQuantity*x.score) as jobNameQuantity,x.pu as puName
+        <if test="vo.puAndDp==true">
+            ,(case when x.department is null then 'airflow' else department end) departmentName
+        </if>
+        from
+        (SELECT
+        count(distinct(a.job_name)) as jobNum,a.dt ,SUM((a.node_hours*a.unit_price+a.assign_cluster_cost)/0.12672) as
+        jobNameQuantity,a.owner
+        FROM bill_cluster_cost a FORCE INDEX(doj)
+        <where>
+            <if test="vo.startDate!=null and vo.startDate!=''">
+                and a.dt>=#{vo.startDate}
+            </if>
+            <if test="vo.endDate!=null and vo.endDate!=''">
+                and #{vo.endDate}>=a.dt
+            </if>
+            <if test="vo.dates!=null">
+                and a.dt IN
+                <foreach collection="vo.dates" item="datess" index="index"
+                         separator="," open="(" close=")">
+                    #{datess}
+                </foreach>
+            </if>
+        </where>
+        group  by a.dt,a.owner
+        )y left join
+        (SELECT d.`owner` as owner1,d.department,'ads' as pu,e.ads as 'score'  FROM tableau.bill_owner_department d LEFT JOIN tableau.bill_department_PU e ON d.department = e.department  union
+        SELECT d.`owner` as owner1,d.department,'matrix products' as pu,e.`matrix products` as 'score'  FROM tableau.bill_owner_department d LEFT JOIN tableau.bill_department_PU e ON d.department = e.department  union
+        SELECT d.`owner` as owner1,d.department,'payment' as pu,e.payment as 'score'  FROM tableau.bill_owner_department d LEFT JOIN tableau.bill_department_PU e ON d.department = e.department  union
+        SELECT d.`owner` as owner1,d.department,'projectx'as pu,e.projectx as 'score'  FROM tableau.bill_owner_department d LEFT JOIN tableau.bill_department_PU e ON d.department = e.department  union
+        SELECT d.`owner` as owner1,d.department,'projecty' as pu,e.projecty as 'projecty'  FROM tableau.bill_owner_department d LEFT JOIN tableau.bill_department_PU e ON d.department = e.department  union
+        SELECT d.`owner` as owner1,d.department,'shareit' as pu,e.shareit as 'score'  FROM tableau.bill_owner_department d LEFT JOIN tableau.bill_department_PU e ON d.department = e.department union
+        SELECT d.`owner` as owner1,d.department,'shareit lite' as pu,e.`shareit lite` as 'score'  FROM tableau.bill_owner_department d LEFT JOIN tableau.bill_department_PU e ON d.department = e.department  ) x
+        on y.`owner` = x.owner1
+        <where>
+            x.score is not null
+            <if test="vo.pus!=null">
+                and x.pu IN
+                <foreach collection="vo.pus" item="pu" index="index"
+                         separator="," open="(" close=")">
+                    #{pu}
+                </foreach>
+            </if>
+            <if test="vo.departments!=null">
+                and x.department IN
+                <foreach collection="vo.departments" item="department" index="index"
+                         separator="," open="(" close=")">
+                    #{department}
+                </foreach>
+            </if>
+        </where>
+        group by x.pu ,y.dt
+        <if test="vo.puAndDp==true">
+            ,x.department
+        </if>
+    </select>
+    <select id="selectPuDepartment" resultType="java.lang.String">
+        select distinct (x.department) from
+        (SELECT d.`owner` as owner1,d.department,'ads' as pu,e.ads as 'score'  FROM tableau.bill_owner_department d LEFT JOIN tableau.bill_department_PU e ON d.department = e.department where  d.department!='-' union
+        SELECT d.`owner` as owner1,d.department,'matrix products' as pu,e.`matrix products` as 'score'  FROM tableau.bill_owner_department d LEFT JOIN tableau.bill_department_PU e ON d.department = e.department where  d.department!='-' union
+        SELECT d.`owner` as owner1,d.department,'payment' as pu,e.payment as 'score'  FROM tableau.bill_owner_department d LEFT JOIN tableau.bill_department_PU e ON d.department = e.department where  d.department!='-' union
+        SELECT d.`owner` as owner1,d.department,'projectx'as pu,e.projectx as 'score'  FROM tableau.bill_owner_department d LEFT JOIN tableau.bill_department_PU e ON d.department = e.department where  d.department!='-' union
+        SELECT d.`owner` as owner1,d.department,'projecty' as pu,e.projecty as 'projecty'  FROM tableau.bill_owner_department d LEFT JOIN tableau.bill_department_PU e ON d.department = e.department where  d.department!='-' union
+        SELECT d.`owner` as owner1,d.department,'shareit' as pu,e.shareit as 'score'  FROM tableau.bill_owner_department d LEFT JOIN tableau.bill_department_PU e ON d.department = e.department where  d.department!='-' union
+        SELECT d.`owner` as owner1,d.department,'shareit lite' as pu,e.`shareit lite` as 'score'  FROM tableau.bill_owner_department d LEFT JOIN tableau.bill_department_PU e ON d.department = e.department where  d.department!='-' ) x
+        <where>
+            x.score is not null
+            <if test="vo.pus!=null">
+                and x.pu IN
+                <foreach collection="vo.pus" item="pu" index="index"
+                         separator="," open="(" close=")">
+                    #{pu}
+                </foreach>
+            </if>
+        </where>
+
+    </select>
+
+
+    <select id="selectDepartmentAndPu" resultType="com.ushareit.dstask.common.vo.cost.CostResponseVo">
+        select x.department departmentName,x.pu puName from
+        (SELECT d.`owner` as owner1,d.department,'ads' as pu,e.ads as 'score'  FROM tableau.bill_owner_department d LEFT JOIN tableau.bill_department_PU e ON d.department = e.department where  d.department!='-' union
+        SELECT d.`owner` as owner1,d.department,'matrix products' as pu,e.`matrix products` as 'score'  FROM tableau.bill_owner_department d LEFT JOIN tableau.bill_department_PU e ON d.department = e.department where  d.department!='-' union
+        SELECT d.`owner` as owner1,d.department,'payment' as pu,e.payment as 'score'  FROM tableau.bill_owner_department d LEFT JOIN tableau.bill_department_PU e ON d.department = e.department where  d.department!='-' union
+        SELECT d.`owner` as owner1,d.department,'projectx'as pu,e.projectx as 'score'  FROM tableau.bill_owner_department d LEFT JOIN tableau.bill_department_PU e ON d.department = e.department where  d.department!='-' union
+        SELECT d.`owner` as owner1,d.department,'projecty' as pu,e.projecty as 'projecty'  FROM tableau.bill_owner_department d LEFT JOIN tableau.bill_department_PU e ON d.department = e.department where  d.department!='-' union
+        SELECT d.`owner` as owner1,d.department,'shareit' as pu,e.shareit as 'score'  FROM tableau.bill_owner_department d LEFT JOIN tableau.bill_department_PU e ON d.department = e.department where  d.department!='-' union
+        SELECT d.`owner` as owner1,d.department,'shareit lite' as pu,e.`shareit lite` as 'score'  FROM tableau.bill_owner_department d LEFT JOIN tableau.bill_department_PU e ON d.department = e.department where  d.department!='-' ) x
+        <where>
+            x.score is not null
+            <if test="vo.pus!=null">
+                and x.pu IN
+                <foreach collection="vo.pus" item="pu" index="index"
+                         separator="," open="(" close=")">
+                    #{pu}
+                </foreach>
+            </if>
+        </where>
+        group by x.department ,x.pu
+
+    </select>
+
+    <select id="selectNewJob" resultType="com.ushareit.dstask.common.vo.cost.CostResponseVo">
+        select #{vo.startDate} as dt,a.job_name,SUM((a.node_hours*a.unit_price+a.assign_cluster_cost)/0.12672) as jobNameQuantity,
+        <if test="vo.costType=='DP' ">
+            d.department departmentName
+        </if>
+        <if test="vo.costType=='OWNER' ">
+            a.owner owner
+        </if>
+        <if test="vo.costType=='JOB' ">
+            a.job_name jobName
+        </if>
+        <if test="vo.costType=='PRODUCT' ">
+            a.product productName
+        </if>
+        from bill_cluster_cost a FORCE INDEX(doj)
+        <if test="vo.costType=='DP' ">
+            LEFT JOIN  tableau.bill_owner_department d on  a.`owner` = d.`owner`
+        </if>
+
+        <where>
+            a.dt=#{vo.startDate}
+            <if test="vo.costType=='OWNER' ">
+                and a.owner IN
+                <foreach collection="vo.owners" item="owner" index="index"
+                         separator="," open="(" close=")">
+                    #{owner}
+                </foreach>
+            </if>
+            <if test="vo.departments!=null">
+                and d.department IN
+                <foreach collection="vo.departments" item="department" index="index"
+                         separator="," open="(" close=")">
+                    #{department}
+                </foreach>
+            </if>
+            and a.job_name not in
+            (
+            select c.job_name from bill_cluster_cost c FORCE INDEX(doj)
+            <if test="vo.costType=='DP' ">
+                LEFT JOIN  bill_owner_department d on  c.`owner` = d.`owner`
+            </if>
+            <where>
+                #{vo.startDate}>dt
+                <if test="vo.costType=='OWNER' ">
+                    and c.owner IN
+                    <foreach collection="vo.owners" item="owner" index="index"
+                             separator="," open="(" close=")">
+                        #{owner}
+                    </foreach>
+                </if>
+                <if test="vo.departments!=null">
+                    and d.department IN
+                    <foreach collection="vo.departments" item="department" index="index"
+                             separator="," open="(" close=")">
+                        #{department}
+                    </foreach>
+                </if>
+            </where>
+            group by c.job_name
+            )
+        </where>
+        group by
+        <if test="vo.costType=='DP' ">
+            d.department ,
+        </if>
+        <if test="vo.costType=='OWNER' ">
+            a.owner ,
+        </if>
+        <if test="vo.costType=='JOB' ">
+            a.job_name ,
+        </if>
+        <if test="vo.costType=='PRODUCT' ">
+            a.product ,
+        </if>
+        a.job_name
+    </select>
+
+    <select id="selectDepartment" resultType="java.lang.String">
+        select distinct (case when department is null then 'EMPTY' else department end) from
+        bill_owner_department
+        <where>
+            <if test="vo.name!=null and vo.name!='' ">
+                and department like CONCAT('%',#{vo.name},'%')
+            </if>
+        </where>
+    </select>
+
+    <select id="selectJobs" resultType="java.lang.String">
+        select jobName from (
+        select   a.job_name jobName from
+        bill_job_detail a
+
+        <where>
+            a.job_name is not null and a.job_name!=''
+            <if test="vo.shareitId!=null and vo.shareitId!=''">
+                and a.owner=#{vo.shareitId}
+            </if>
+            <if test="vo.dps!=null">
+                and a.department IN
+                <foreach collection="vo.dps" item="department" index="index"
+                         separator="," open="(" close=")">
+                    #{department}
+                </foreach>
+            </if>
+            <if test="vo.regions!=null">
+                and a.region IN
+                <foreach collection="vo.regions" item="region" index="index"
+                         separator="," open="(" close=")">
+                    #{region}
+                </foreach>
+            </if>
+            <if test="vo.products!=null">
+                and a.product IN
+                <foreach collection="vo.products" item="product" index="index"
+                         separator="," open="(" close=")">
+                    #{product}
+                </foreach>
+            </if>
+            <if test="vo.owners!=null">
+                and a.owner IN
+                <foreach collection="vo.owners" item="owner" index="index"
+                         separator="," open="(" close=")">
+                    #{owner}
+                </foreach>
+            </if>
+        </where>
+        group by a.job_name)j
+        <where>
+            <if test="vo.name!=null and vo.name!='' ">
+                and  j.jobName like CONCAT('%',#{vo.name},'%')
+            </if>
+        </where>
+        limit 50
+    </select>
+
+    <select id="selectJobOwner" resultType="com.ushareit.dstask.common.vo.cost.CostResponseVo">
+        select   a.job_name jobName,a.`owner`,d.department departmentName,a.region region,a.product productName from
+        bill_cluster_cost a LEFT JOIN  tableau.bill_owner_department d on  a.`owner` = d.`owner`
+        <where>
+            a.job_name is not null and a.job_name!=''
+        </where>
+        group by a.job_name,a.`owner`,d.department
+    </select>
+
+    <select id="selectOwners" resultType="java.lang.String">
+        select   a.owner  from
+        bill_job_detail a
+
+        <where>
+            a.owner is not null and a.owner!=''
+            <if test="vo.name!=null and vo.name!='' ">
+                and a.owner like CONCAT('%',#{vo.name},'%')
+            </if>
+            <if test="vo.dps!=null">
+                and a.department IN
+                <foreach collection="vo.dps" item="department" index="index"
+                         separator="," open="(" close=")">
+                    #{department}
+                </foreach>
+            </if>
+            <if test="vo.regions!=null">
+                and a.region IN
+                <foreach collection="vo.regions" item="region" index="index"
+                         separator="," open="(" close=")">
+                    #{region}
+                </foreach>
+            </if>
+            <if test="vo.products!=null">
+                and a.product IN
+                <foreach collection="vo.products" item="product" index="index"
+                         separator="," open="(" close=")">
+                    #{product}
+                </foreach>
+            </if>
+        </where>
+        group by a.owner
+    </select>
+    <select id="selectRegions" resultType="java.lang.String">
+        select   a.region  from
+        bill_job_detail a
+
+        <where>
+            region is not null and a.region!=''
+            <if test="vo.name!=null and vo.name!='' ">
+                and  a.region like CONCAT('%',#{vo.name},'%')
+            </if>
+            <if test="vo.dps!=null">
+                and a.department IN
+                <foreach collection="vo.dps" item="department" index="index"
+                         separator="," open="(" close=")">
+                    #{department}
+                </foreach>
+            </if>
+        </where>
+        group by a.region
+    </select>
+
+
+    <select id="selectProducts" resultType="java.lang.String">
+        select   a.product  from
+        bill_job_detail a
+
+        <where>
+            a.product is not null and a.product!=''
+            <if test="vo.name!=null and vo.name!='' ">
+                and  product like CONCAT('%',#{vo.name},'%')
+            </if>
+            <if test="vo.dps!=null">
+                and a.department IN
+                <foreach collection="vo.dps" item="department" index="index"
+                         separator="," open="(" close=")">
+                    #{department}
+                </foreach>
+            </if>
+            <if test="vo.regions!=null">
+                and a.region IN
+                <foreach collection="vo.regions" item="region" index="index"
+                         separator="," open="(" close=")">
+                    #{region}
+                </foreach>
+            </if>
+        </where>
+        group by a.product
+    </select>
+
+    <delete id="deleteJobDetail">
+        truncate bill_job_detail
+    </delete>
+
+    <insert id="insertBatchJobDetail">
+        INSERT into bill_job_detail(job_name,job_id,owner,department,region,product)
+        VALUES
+        <foreach collection="list" item="ad" index="index" separator=",">
+            (#{ad.jobName},#{ad.jobId},#{ad.owner},#{ad.departmentName},#{ad.region},#{ad.productName})
+        </foreach>
+    </insert>
+</mapper>
+
+
+

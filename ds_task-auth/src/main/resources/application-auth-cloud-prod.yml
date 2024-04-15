@@ -1,0 +1,44 @@
+system:
+    code: dataStudio
+
+zeus:
+  login:
+    intercept:
+      active: false
+  access:
+    intercept:
+      active: false
+ds:
+  login:
+    intercept:
+      dsactive: true
+  access:
+    intercept:
+      dsactive: false
+    check:
+      url: http://localhost:8088/ds/check/newaccess?requestPath={0}
+  cloud:
+    intercept:
+      dsactive: true
+
+remote:
+  access:
+    verify:
+      url: https://https://127.0.0.1:8085/accessAuth?uri={uri}&systemCode={systemCode}
+  identity:
+    verify:
+      url: https://https://127.0.0.1:8085/remote/user/info?systemCode=${system.code}
+  system:
+    menu:
+      url: https://https://127.0.0.1:8085/system/menu?sysCode=${system.code}
+    logout:
+      url: https://https://127.0.0.1:8085/logout
+    userinfo:
+      url: https://https://127.0.0.1:8085/user
+
+oidc:
+  server.code: dsTaskApi
+  identity.url: "https://https://127.0.0.1:804/dex/keys"
+
+lakeCat:
+  token: rO0ABXNyADJpby5sYWtlY2F0LmNhdGFsb2cuYXV0aGVudGljYXRpb24ubW9kZWwuTG9jYWxUb2tlbjcmbiYxJvNvAgADTAAJYWNjb3VudElkdAASTGphdmEvbGFuZy9TdHJpbmc7TAAGcGFzc3dkcQB+AAFMAAZ1c2VySWRxAH4AAXhwdAANWmhlSmlhbmdEYVh1ZXQAA2JkcHEAfgAE

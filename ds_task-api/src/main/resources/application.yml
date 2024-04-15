@@ -1,0 +1,185 @@
+## 指定默认激活的环境配置
+server:
+  port: 8088
+  connection-timeout: 36000000
+  servlet:
+    session:
+      timeout: 7200s
+  compression:
+    enabled: true
+    min-response-size: 500
+
+# 调试 tomcat:
+#    max-threads: 1
+swagger:
+  enable: false
+
+spring:
+  servlet:
+    multipart:
+      max-request-size: 1024MB
+      max-file-size: 500MB
+  http:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+  messages:
+    encoding: UTF-8
+  profiles:
+    active: auth-cloud-prod, cloud-prod
+#    active: auth-dev, dev
+  application:
+    name: '@name@'
+  cache:
+    cache-names: metadata,cache_common,metadataV2,saprkSqlCheck,feedback,cloudResource,seatunnelSearch
+    caffeine:
+      spec: maximumSize=500 , expireAfterWrite=1800s
+
+  ##datasource
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    druid:
+      # 数据源其他配置
+      initialSize: 0
+      minIdle: 1
+      maxActive: 100
+      maxWait: 60000
+      timeBetweenEvictionRunsMillis: 60000
+      minEvictableIdleTimeMillis: 300000
+      validationQuery: SELECT 1 FROM DUAL
+      testWhileIdle: true
+      testOnBorrow: false
+      testOnReturn: false
+      # 合并多个数据源监控信息
+      useGlobalDataSourceStat: true
+      # statu 监控统计，'wall'用于防御sql注入
+      filters: stat,wall,slf4j
+      stat-view-servlet:
+        url-pattern: /inf-druid/*
+        login-username: inf-db
+        login-password: inf2018
+      filter:
+        stat:
+          merge-sql: true
+          log-slow-sql: true
+          slow-sql-millis: 1000
+        slf4j:
+          enabled: true
+          statement-create-after-log-enabled: false
+          statement-close-after-log-enabled: false
+          result-set-open-after-log-enabled: false
+          result-set-close-after-log-enabled: false
+
+version: '@version@'
+session:
+  key:
+    user: user
+
+management:
+  server:
+    port: 10106
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+        step: 1m
+        descriptions: true
+    enable:
+      jvm: false
+  web:
+    server:
+      request:
+        autotime:
+          enabled: true
+        metric-name: http_process_time
+  endpoints:
+    prometheus:
+      id: springmetrics
+    web:
+      base-path: /
+      path-mapping:
+        prometheus: metrics
+      exposure:
+        include: prometheus
+
+## mapper配置
+mapper:
+  not-empty: false
+  identity: MYSQL
+
+mybatis-plus:
+  mapper-locations: classpath*:outmapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+
+dingDing:
+  tokenUrl: http://127.0.0.1:8081/dex/token
+  url: http://127.0.0.1:8082/notify/dingapp/send
+  phoneUrl: http://127.0.0.1:8082/notify/telephone/send
+  username: admin
+  password: admin
+
+
+#external-role 决定此服务是否是外部一键部署模式
+datacake:
+#  external-role: false
+  flink-sa: flink
+  flink-scheduler: my-scheduler
+  super-tenant: ninebot
+
+spring.mail:
+  port: 465
+  host: smtp.qiye.aliyun.com
+  username: xxx@ushareit.com
+  password: xxx
+  test-connection: false
+  default-encoding: UTF-8
+  properties:
+    mail:
+      debug: false
+      smtp:
+        timeout: 5000
+        ssl:
+          enable: true
+        socketFactory:
+          port:
+          class:
+        auth: true
+        starttls:
+          enable: true
+          required: true
+  from: xxx@ushareit.com
+
+spark-resources:
+  middleResource: --conf spark.driver.memory=5g --conf spark.executor.memory=8g --conf spark.executor.memoryOverhead=1g --conf spark.default.parallelism=400 --conf spark.sql.shuffle.partitions=400
+  largeResource: --conf spark.driver.memory=5g --conf spark.executor.memory=13g --conf spark.executor.memoryOverhead=1g --conf spark.default.parallelism=800 --conf spark.sql.shuffle.partitions=800
+  extraLargeResource: --conf spark.driver.memory=10g --conf spark.executor.memory=24g --conf spark.executor.memoryOverhead=4g --conf spark.default.parallelism=1500 --conf spark.sql.shuffle.partitions=1500
+  nodeSelectorLifecycle: --conf spark.kubernetes.executor.node.selector.lifecycle=OnDemand  --conf spark.kubernetes.driverEnv.spark.kubernetes.driver.reusePersistentVolumeClaim=false --conf spark.kubernetes.driverEnv.spark.kubernetes.driver.ownPersistentVolumeClaim=false --conf spark.kubernetes.driverEnv.spark.shuffle.sort.io.plugin.class=org.apache.spark.shuffle.sort.io.LocalDiskShuffleDataIO --conf spark.executorEnv.spark.kubernetes.driver.reusePersistentVolumeClaim=false --conf spark.executorEnv.spark.shuffle.sort.io.plugin.class=org.apache.spark.shuffle.sort.io.LocalDiskShuffleDataIO
+
+de-server-url:
+  host: "http://localhost:8088/"
+
+shimo-url:
+  host: "https://shimo.im/docs"
+
+ranger:
+  adminUsername: "admin"
+  adminPassword: "admin"
+
+data-cake:
+  username: datacake
+  password: 123456
+  sql-files: init_database_prod.sql,init_table.sql,init_data_prod.sql,gov_init.sql,qe_init.sql
+  admin-sql-files: init_admin_data.sql
+
+admin:
+  email: default
+
+spark:
+  env:
+    namespace: bdp
+
+kerberos:
+  open: true
