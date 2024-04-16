@@ -1,0 +1,63 @@
+syntax = "proto3";
+
+option java_package = "com.ushareit.dstask.api";
+option java_outer_classname = "DataSourceQueryApi";
+
+service DataSourceQueryService {
+
+  rpc query(QueryRequest) returns (QueryResponse) {
+  }
+
+  rpc getInfo(ActorRequest) returns (ClusterResponse) {
+  }
+
+}
+
+message QueryRequest {
+  int32 actorId = 1;
+  SourceType sourceType = 2;
+  string sql = 3;
+  QueryContext queryContext = 4;
+}
+
+message QueryResponse {
+
+  // 0 成功 其他-失败
+  int32 code = 1;
+  // 失败时的错误信息
+  string message = 2;
+
+  repeated Item result = 3;
+}
+
+message ActorRequest {
+  int32 actorId = 1;
+}
+
+message ClusterResponse {
+  // 0 成功 其他-失败
+  int32 code = 1;
+  // 失败时的错误信息
+  string message = 2;
+
+  ClusterInfo clusterInfo = 3;
+}
+
+message QueryContext {
+  repeated string ruleKeyList = 1;
+}
+
+message Item {
+  map<string, string> columnMap = 1;
+}
+
+message ClusterInfo {
+  string host = 1;
+  string username = 2;
+  string password = 3;
+}
+
+enum SourceType {
+  clickhouse = 0;
+  mysql = 1;
+}

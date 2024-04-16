@@ -1,0 +1,42 @@
+system:
+  code: dataStudio
+
+zeus:
+  login:
+    intercept:
+      active: false
+  access:
+    intercept:
+      active: false
+ds:
+  login:
+    intercept:
+      dsactive: false
+  access:
+    intercept:
+      dsactive: false
+    check:
+      #      url: http://ds-task-dev.ushareit.org/ds/check/newaccess?requestPath={0}
+      url: http://localhost:8088/ds/check/newaccess?requestPath={0}
+  cloud:
+    intercept:
+      dsactive: true
+
+remote:
+  access:
+    verify:
+      url: https://zeus-api-dev.ushareit.org/zeus/accessAuth?uri={uri}&systemCode={systemCode}
+  identity:
+    verify:
+      url: https://zeus-api-dev.ushareit.org/zeus/remote/user/info?systemCode=${system.code}
+  system:
+    menu:
+      url: https://zeus-api-dev.ushareit.org/zeus/system/menu?sysCode=${system.code}
+    logout:
+      url: https://zeus-api-dev.ushareit.org/zeus/logout
+    userinfo:
+      url: https://zeus-api-dev.ushareit.org/zeus/user
+
+oidc:
+  server.code: dsTaskApi
+  identity.url: "https://sentry-dev.ushareit.me/dex/keys"

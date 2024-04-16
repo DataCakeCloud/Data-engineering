@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ${flink_tm_name}  ## flink-taskmanager-wuyan
+  ownerReferences:
+    - apiVersion: batch/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Job
+      name: ${flink_jm_name}
+      uid: ${UID}
+spec:
+  replicas: ${parallelism}
+  selector:
+    matchLabels:
+      ## flink_wuyan
+      app: ${jm_tm_label_name}
+      component: taskmanager
+  template:
+    metadata:
+      annotations:
+        prometheus.io/port: '10106'
+        prometheus.io/scrape: 'true'
+        iam.shareit.me/aws: ${awsIam}
+        iam.shareit.me/huawei: ${huaweiIam}
+        iam.shareit.me/type: env
+      labels:
+        app: ${jm_tm_label_name}
+        component: taskmanager
+        owner: ${jm_tm_label_owner}
+        template: ${jm_tm_label_template}
+        id: ${jm_tm_label_id}
+    spec:
+      containers:
+        - name: taskmanager
+#          image: swr.ap-southeast-3.myhuaweicloud.com/shareit-cbs/sflink:dd234d5
+          image: ${flink_image}
+          imagePullPolicy: Always
+          resources:
+            requests:
+              cpu: ${tm_cpu}
+              memory: ${tm_memory}
+            limits:
+              cpu: ${tm_cpu}
+              memory: ${tm_memory}
+          command: ["/App/flink/bin/taskmanager.sh"]
+          args: ["start-foreground"]
+          env:
+            - name: env
+              value: ${env}
+            - name: region
+              value: ${region}
+          ports:
+            - containerPort: 6122
+              name: rpc
+            - containerPort: 6125
+              name: query-state
+          livenessProbe:
+            tcpSocket:
+              port: 6122
+            initialDelaySeconds: 30
+            periodSeconds: 60
+          volumeMounts:
+            - name: ${flink_config_volume}
+              mountPath: /opt/flink/conf/${pvc_volumeMounts}
+          securityContext:
+            runAsUser: 0  # refers to user _flink_ from official flink image, change if necessary
+      imagePullSecrets:
+        - name: default-secret${nodeSelector_tolerations}
+      serviceAccountName: jobmanager
+      volumes:
+        - name: ${flink_config_volume}
+          configMap:
+            name: ${flink_config_name}
+            items:
+              - key: flink-conf.yaml
+                path: flink-conf.yaml
+              - key: log4j.properties
+                path: log4j.properties${pvc_volumes}
